@@ -1,0 +1,17 @@
+name: Feature request
+description: Propose a local-first Brings CLI capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed workflow
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Document and compatibility impact
+      description: Explain durable data changes and backward compatibility.
+    validations:
+      required: true
