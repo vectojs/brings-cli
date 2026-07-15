@@ -56,7 +56,7 @@ describe("parseArguments", () => {
       "node.group",
       "node.ungroup",
       "layer.move",
-    ];
+    ] as const;
 
     for (const [index, args] of cases.entries()) {
       const parsed = parseArguments([...args, "--expected-revision", "0"]);
