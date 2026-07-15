@@ -5,7 +5,7 @@
     "": {
       "name": "@vectojs/brings-cli",
       "dependencies": {
-        "@vectojs/brings-core": "0.11.0",
+        "@vectojs/brings-core": "0.13.0",
       },
       "devDependencies": {
         "@types/bun": "^1.3.0",
@@ -98,7 +98,7 @@
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
 
-    "@vectojs/brings-core": ["@vectojs/brings-core@0.11.0", "", {}, "sha512-qQofzni2nuOj63+S+gHce6SKut8MlHfenKOAIZEKYIq0WM4Am3OECKViG8eSQn+0iXLEa9gAo7DSCyPhmEU0XA=="],
+    "@vectojs/brings-core": ["@vectojs/brings-core@0.13.0", "", {}, "sha512-0gwuI/oS1AzIVsVfkiCKYw9nX8yEs5KqLOf75fEdm+sLQN02qi2RnPi9GqTw/ua+Md2xaUoVtkpULUSA+cQ4zg=="],
 
     "bun-types": ["bun-types@1.3.14", "", { "dependencies": { "@types/node": "*" } }, "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ=="],
 
