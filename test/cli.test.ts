@@ -45,6 +45,13 @@ afterEach(async () => {
 });
 
 describe("brings executable", () => {
+  test("prints command help without accessing a document", async () => {
+    const result = await invoke(["--help"]);
+    expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+    expect(result.stdout).toContain("brings rectangle create");
+    expect(result.stdout).toContain("--expected-revision");
+  });
+
   test("creates safely and inspects validated revision metadata", async () => {
     const file = join(root, "design.json");
     const created = await json(["create", file]);

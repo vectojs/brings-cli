@@ -12,8 +12,14 @@ import {
 const usage = `Usage:
   brings create <file> [--force] [--json]
   brings inspect <file> [--json]
-  brings <frame|rectangle|text> create <file> [options] --expected-revision <n>
-  brings node <set|transform|delete|group|ungroup> <file> [options] --expected-revision <n>
+  brings frame create <file> [options] --expected-revision <n>
+  brings rectangle create <file> [options] --expected-revision <n>
+  brings text create <file> [options] --expected-revision <n>
+  brings node set <file> [options] --expected-revision <n>
+  brings node transform <file> [options] --expected-revision <n>
+  brings node delete <file> [options] --expected-revision <n>
+  brings node group <file> [options] --expected-revision <n>
+  brings node ungroup <file> [options] --expected-revision <n>
   brings layer move <file> [options] --expected-revision <n>`;
 
 function printJson(value: unknown): void {
@@ -65,6 +71,11 @@ export async function run(args: readonly string[]): Promise<number> {
     throw error;
   }
 
+  if (request.kind === "help") {
+    console.log(usage);
+    return 0;
+  }
+
   if (request.kind === "mutation") {
     const result = await executeIntent(request.intent);
     printMutation(result, request.intent.json);
@@ -87,9 +98,8 @@ export async function run(args: readonly string[]): Promise<number> {
         revision: { expected: null, actual: null },
         warnings: [],
       };
-      request.json
-        ? printJson(failure)
-        : console.error(`${created.error.code} (${created.error.path})`);
+      if (request.json) printJson(failure);
+      else console.error(`${created.error.code} (${created.error.path})`);
       return 1;
     }
     const written = await createDocumentFile({
@@ -99,9 +109,8 @@ export async function run(args: readonly string[]): Promise<number> {
     });
     if (!written.ok) {
       const output = fileFailure(written, request.file);
-      request.json
-        ? printJson(output)
-        : console.error(`${written.error.code} (${written.error.path})`);
+      if (request.json) printJson(output);
+      else console.error(`${written.error.code} (${written.error.path})`);
       return 1;
     }
     printJson({
@@ -117,9 +126,8 @@ export async function run(args: readonly string[]): Promise<number> {
   const inspected = await inspectDocumentFile(request.file);
   if (!inspected.ok) {
     const output = fileFailure(inspected, request.file);
-    request.json
-      ? printJson(output)
-      : console.error(`${inspected.error.code} (${inspected.error.path})`);
+    if (request.json) printJson(output);
+    else console.error(`${inspected.error.code} (${inspected.error.path})`);
     return 1;
   }
   const document = inspected.value.document;

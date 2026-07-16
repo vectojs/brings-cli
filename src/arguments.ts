@@ -90,6 +90,7 @@ export type AutomationIntent =
       }>);
 
 export type CliRequest =
+  | Readonly<{ kind: "help" }>
   | Readonly<{ kind: "create"; file: string; force: boolean; json: boolean }>
   | Readonly<{ kind: "inspect"; file: string; json: boolean }>
   | Readonly<{ kind: "mutation"; intent: AutomationIntent }>;
@@ -514,6 +515,9 @@ function parseSimple(
 
 /** Parse one CLI invocation without touching the filesystem. */
 export function parseArguments(args: readonly string[]): CliRequest {
+  if (args.length === 1 && ["help", "--help", "-h"].includes(args[0]!)) {
+    return { kind: "help" };
+  }
   if (args[0] === "create") {
     const file = args[1];
     if (file === undefined) fail("argument.file", "create requires a file");

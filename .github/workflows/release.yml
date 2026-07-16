@@ -1,0 +1,40 @@
+name: Publish package
+
+on:
+  push:
+    tags:
+      - "@vectojs/brings-cli@*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Verify release tag matches package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          EXPECTED_VERSION="${TAG#@vectojs/brings-cli@}"
+          PACKAGE_VERSION=$(bun -e "console.log(require('./package.json').version)")
+          test "$EXPECTED_VERSION" = "$PACKAGE_VERSION"
+      - run: bun run verify
+      - name: Configure npm registry auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+      - run: npm publish --access public
+      - id: pack
+        run: |
+          npm pack
+          echo "tarball=$(find . -maxdepth 1 -name '*.tgz' -exec basename {} \;)" >> "$GITHUB_OUTPUT"
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ steps.pack.outputs.tarball }}
+          name: ${{ github.ref_name }}

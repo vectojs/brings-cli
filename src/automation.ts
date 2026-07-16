@@ -1,7 +1,6 @@
 import {
   type BringsDocument,
   type DocumentCommandInput,
-  type EditorSnapshot,
   type SceneNode,
   type SolidPaintInput,
 } from "@vectojs/brings-core";
