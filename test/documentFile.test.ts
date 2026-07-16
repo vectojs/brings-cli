@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+  link,
   mkdir,
   readFile,
   rm,
@@ -59,6 +60,18 @@ describe("document file transactions", () => {
     const alias = join(root, "alias.json");
     await symlink(path, alias);
     expect(await inspectDocumentFile(alias)).toMatchObject({
+      ok: false,
+      error: { code: "document.file-kind", path: "/file" },
+    });
+
+    const hardLink = join(root, "hard-link.json");
+    await link(path, hardLink);
+    expect(await inspectDocumentFile(path)).toMatchObject({
+      ok: false,
+      error: { code: "document.file-kind", path: "/file" },
+    });
+
+    expect(await inspectDocumentFile(root)).toMatchObject({
       ok: false,
       error: { code: "document.file-kind", path: "/file" },
     });
@@ -217,6 +230,42 @@ describe("document file transactions", () => {
     });
     expect(JSON.parse(await readFile(committedPath, "utf8"))).toMatchObject({
       revision: 1,
+    });
+  });
+
+  test("keeps the primary failure when owned lock release also fails", async () => {
+    const path = join(root, "primary.json");
+    await writeDocument(path);
+    const result = await mutateDocumentFile({
+      path,
+      expectedRevision: 4,
+      dryRun: false,
+      faults: { beforeLockRelease: () => Promise.reject(new Error("fault")) },
+      execute: () => {
+        throw new Error("must not execute");
+      },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "document.revision-conflict", path: "/revision" },
+      warnings: [{ code: "document.lock-release-failed", path: "/file" }],
+    });
+  });
+
+  test("never turns post-publication cleanup faults into false failures", async () => {
+    const path = join(root, "published.json");
+    const result = await createDocumentFile({
+      path,
+      document: document(),
+      force: false,
+      faults: {
+        afterPublish: () => Promise.reject(new Error("cleanup fault")),
+      },
+    });
+    expect(result).toMatchObject({ ok: true });
+    expect(JSON.parse(await readFile(path, "utf8"))).toMatchObject({
+      id: documentId,
+      revision: 0,
     });
   });
 

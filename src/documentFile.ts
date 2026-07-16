@@ -41,12 +41,12 @@ export type DocumentFileSuccess<T> = Readonly<{
 }>;
 
 export type DocumentFileResult<T> =
-  | DocumentFileSuccess<T>
-  | DocumentFileFailure;
+  DocumentFileSuccess<T> | DocumentFileFailure;
 
 export type TransactionFaults = Readonly<{
   beforeWriteTemp?: () => void | Promise<void>;
   beforePublish?: () => void | Promise<void>;
+  afterPublish?: () => void | Promise<void>;
   beforeLockRelease?: () => void | Promise<void>;
 }>;
 
@@ -104,6 +104,20 @@ async function acquireLock(
     await handle.sync();
     return success({ path: lockPath, token });
   } catch (error) {
+    if (handle !== undefined) {
+      const owned = await handle.stat().catch(() => undefined);
+      await handle.close().catch(() => undefined);
+      const current = await lstat(lockPath).catch(() => undefined);
+      if (
+        owned !== undefined &&
+        current !== undefined &&
+        owned.dev === current.dev &&
+        owned.ino === current.ino
+      ) {
+        await unlink(lockPath).catch(() => undefined);
+      }
+      handle = undefined;
+    }
     if (errno(error) === "EEXIST") return failure("document.locked");
     return failure("document.lock");
   } finally {
@@ -289,16 +303,24 @@ async function publishTemporary(
       await rename(temp, path);
     } else {
       await link(temp, path);
-      await unlink(temp);
     }
-    await syncDirectory(path);
-    return success(true);
   } catch (error) {
     await unlink(temp).catch(() => undefined);
     if (!replace && errno(error) === "EEXIST")
       return failure("document.exists");
     return failure("document.write");
   }
+
+  // Publication is the commit point. Cleanup or directory-sync failures after
+  // it cannot be reported as a failed mutation because the target has changed.
+  try {
+    await faults?.afterPublish?.();
+  } catch {
+    // The fault seam proves post-commit errors never become false failures.
+  }
+  if (!replace) await unlink(temp).catch(() => undefined);
+  await syncDirectory(path).catch(() => undefined);
+  return success(true);
 }
 
 /** Read and validate one document through a no-follow regular-file handle. */
