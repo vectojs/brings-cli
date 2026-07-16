@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- 804565d: Add revision-protected named design mutations, dry-run replay, stable result
+  envelopes, and atomic sidecar-locked document transactions.
+
 All notable changes to this project are documented here.
 
 ## Unreleased
